@@ -12,75 +12,75 @@
             font-weight: normal; font-style: normal; font-display: swap;
         }
 
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; padding: 20px; }
-        .container { display: flex; gap: 20px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .editor { width: 320px; display: flex; flex-direction: column; gap: 10px; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f4f4; padding: 20px; }
+        .container { display: flex; gap: 20px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .editor { width: 320px; display: flex; flex-direction: column; gap: 15px; }
         
-        /* 預覽區 */
+        /* 預覽區：固定高度與內邊距 */
         .preview-area { 
             width: 450px; height: 636px; 
             background-image: url('letter01.jpg'); 
             background-size: cover; 
-            padding: 75px 55px; 
+            padding: 85px 52px 60px 52px; 
             box-sizing: border-box;
             display: flex; flex-direction: column;
-            position: relative; overflow: hidden;
+            position: relative; overflow: hidden; /* 確保內容不溢出 */
         }
 
         .letter-text {
             font-family: 'ChenYuluoyan', 'Noto Serif TC', serif;
             word-break: break-all; overflow-wrap: break-word;
-            white-space: pre-wrap; color: #2c3e50;
+            white-space: pre-wrap; color: #3A4A5B;
         }
 
-        #out-to { font-size: 1.4rem; font-weight: bold; margin-bottom: 10px; flex-shrink: 0; }
-        #out-body { flex: 1; font-size: 1.2rem; line-height: 1.8; font-weight: 500; overflow: hidden; }
-        #out-from { text-align: right; font-size: 1.3rem; margin-top: 10px; flex-shrink: 0; }
+        #out-to { font-size: 1.3rem; font-weight: bold; margin-bottom: 8px; flex-shrink: 0; }
         
-        .control-group { margin-bottom: 10px; position: relative; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
-        
-        /* 字數計數器樣式 */
-        .word-counter { 
-            position: absolute; right: 0; top: 0; 
-            font-size: 0.75rem; color: #666; 
+        /* 正文：固定字體大小與行高，確保內容待在信紙內 */
+        #out-body { 
+            flex: 1; 
+            font-size: 1.15rem; /* 固定字體大小 */
+            line-height: 1.75; 
+            font-weight: 500; 
+            overflow: hidden; /* 超過範圍會被裁切，不會爆開 */
         }
-        .over-limit { color: #e53e3e; font-weight: bold; }
 
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        button { background: #5a67d8; color: white; border: none; padding: 12px; width: 100%; cursor: pointer; border-radius: 5px; font-weight: bold; margin-top: 5px; }
-        .btn-clear { background: #e53e3e; margin-top: 5px; font-size: 0.8rem; padding: 5px; }
+        #out-from { text-align: right; font-size: 1.2rem; margin-top: 5px; flex-shrink: 0; }
+        
+        .control-group { position: relative; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.85rem; color: #444; }
+        .word-counter { position: absolute; right: 0; top: 0; font-size: 0.7rem; color: #888; }
+        .over-limit { color: #e53e3e; }
+
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        textarea { resize: none; }
+        
+        button { background: #4a5568; color: white; border: none; padding: 14px; cursor: pointer; border-radius: 6px; font-weight: bold; }
+        .btn-clear { background: #feb2b2; color: #9b2c2c; padding: 8px; font-size: 0.8rem; border: none; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="editor">
-            <h2>編輯手寫信</h2>
+            <h2 style="margin-top:0">✍️ 寫封信給 Yoruno</h2>
             
             <div class="control-group">
                 <label>收件人</label>
-                <input type="text" id="in-to" placeholder="Dear Someone">
+                <input type="text" id="in-to" placeholder="親愛的...">
             </div>
 
             <div class="control-group">
-                <label>內容</label>
-                <textarea id="in-body" maxlength="200" placeholder="限200字以內..." style="height:200px;"></textarea>
-                <div id="counter-box" class="word-counter"><span id="char-count">0</span> / 200</div>
+                <label>信件內容</label>
+                <textarea id="in-body" maxlength="200" placeholder="限200字以內..." style="height:220px;"></textarea>
+                <div class="word-counter"><span id="char-count">0</span> / 200</div>
             </div>
 
             <div class="control-group">
-                <label>字體大小 (<span id="font-size-val">1.2</span>rem)</label>
-                <input type="range" id="in-size" min="0.8" max="1.8" step="0.1" value="1.2">
+                <label>你的署名</label>
+                <input type="text" id="in-from" placeholder="Yours...">
             </div>
 
-            <div class="control-group">
-                <label>寄件人署名</label>
-                <input type="text" id="in-from" placeholder="Yours truly">
-            </div>
-
-            <button onclick="saveImage()">儲存圖片下載</button>
-            <button class="btn-clear" onclick="clearDraft()">清除草稿重寫</button>
-            <p id="status" style="font-size: 0.8rem; color: #666; text-align: center; margin-top: 10px;">載入中...</p>
+            <button onclick="saveImage()">💾 儲存高清信件</button>
+            <button class="btn-clear" onclick="clearDraft()">🗑️ 清空重寫</button>
         </div>
         
         <div id="letter-capture" class="preview-area">
@@ -91,77 +91,58 @@
     </div>
 
     <script>
-        const ids = ['in-to', 'in-body', 'in-from', 'in-size'];
+        const ids = ['in-to', 'in-body', 'in-from'];
         
         window.onload = () => {
             ids.forEach(id => {
-                const savedData = localStorage.getItem(id);
-                if (savedData) {
-                    document.getElementById(id).value = savedData;
-                    updatePreview(id, savedData);
+                const saved = localStorage.getItem(id);
+                if (saved) {
+                    document.getElementById(id).value = saved;
+                    document.getElementById(id.replace('in-', 'out-')).innerText = saved;
                 }
             });
-            updateCounter(); // 初始化計數器
-            document.fonts.ready.then(() => document.getElementById('status').innerText = "嘿嘿");
+            updateCounter();
         };
 
-        function updatePreview(id, value) {
-            if (id === 'in-size') {
-                document.getElementById('out-body').style.fontSize = value + 'rem';
-                document.getElementById('font-size-val').innerText = value;
-            } else {
-                const outId = id.replace('in-', 'out-');
-                document.getElementById(outId).innerText = value;
-            }
-        }
-
-        // 字數計數器邏輯
         function updateCounter() {
-            const content = document.getElementById('in-body').value;
-            const count = content.length;
+            const count = document.getElementById('in-body').value.length;
             const display = document.getElementById('char-count');
             display.innerText = count;
-            
-            if (count >= 200) {
-                display.classList.add('over-limit');
-            } else {
-                display.classList.remove('over-limit');
-            }
+            display.className = count >= 200 ? 'over-limit' : '';
         }
 
         ids.forEach(id => {
             document.getElementById(id).oninput = e => {
                 const val = e.target.value;
-                updatePreview(id, val);
+                document.getElementById(id.replace('in-', 'out-')).innerText = val;
                 localStorage.setItem(id, val);
                 if (id === 'in-body') updateCounter();
             };
         });
 
         function clearDraft() {
-            if (confirm("確定要清除所有內容重寫嗎？")) {
-                ids.forEach(id => {
-                    localStorage.removeItem(id);
-                    document.getElementById(id).value = (id === 'in-size' ? 1.2 : '');
-                    updatePreview(id, (id === 'in-size' ? 1.2 : ''));
-                });
-                updateCounter();
+            if (confirm("確定要清除草稿嗎？")) {
+                localStorage.clear();
+                location.reload();
             }
         }
 
         async function saveImage() {
             const btn = document.querySelector('button');
-            btn.innerText = "合成中...";
+            btn.innerText = "正在生成中...";
             try {
-                const canvas = await html2canvas(document.getElementById('letter-capture'), { scale: 3, useCORS: true });
+                const canvas = await html2canvas(document.getElementById('letter-capture'), { 
+                    scale: 3, 
+                    useCORS: true
+                });
                 const link = document.createElement('a');
-                link.download = `Letter_${new Date().getTime()}.png`;
+                link.download = `Letter_${Date.now()}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
-                btn.innerText = "儲存圖片下載";
+                btn.innerText = "💾 儲存高清信件";
             } catch (err) {
                 alert("儲存失敗");
-                btn.innerText = "儲存圖片下載";
+                btn.innerText = "💾 儲存高清信件";
             }
         }
     </script>
