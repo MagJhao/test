@@ -3,108 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <title>信紙合成器</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* 定義辰宇落雁體 */
         @font-face {
             font-family: 'ChenYuluoyan';
             src: url('ChenYuluoyan-2.0-Thin.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap; /* 確保字體加載時能平滑切換 */
+            font-weight: normal; font-style: normal; font-display: swap;
         }
 
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; padding: 20px; }
         .container { display: flex; gap: 20px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .editor { width: 300px; display: flex; flex-direction: column; gap: 10px; }
+        .editor { width: 320px; display: flex; flex-direction: column; gap: 10px; }
         
+        /* 預覽區 */
         .preview-area { 
             width: 450px; height: 636px; 
             background-image: url('letter01.jpg'); 
             background-size: cover; 
-            padding: 75px 55px; /* 這裡的 Padding 控制了文字的邊界 */
+            padding: 75px 55px; 
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden; /* 關鍵：強制文字不准跑出信紙範圍 */
+            display: flex; flex-direction: column;
+            position: relative; overflow: hidden;
         }
 
         .letter-text {
             font-family: 'ChenYuluoyan', 'Noto Serif TC', serif;
-            word-break: break-all;
-            overflow-wrap: break-word;
-            white-space: pre-wrap;
-            color: #2c3e50;
+            word-break: break-all; overflow-wrap: break-word;
+            white-space: pre-wrap; color: #2c3e50;
         }
 
-        #out-to { 
-            font-size: 1.4rem; 
-            font-weight: bold; 
-            margin-bottom: 10px; 
-            flex-shrink: 0; 
-        }
-
-        /* 信件文字內容樣式 */
-        .letter-content { 
-            flex: 1; 
-            font-family: 'ChenYuluoyan', 'Noto Serif TC', serif; 
-            font-size: 1.3rem; /* 辰宇落雁體通常偏細，調大一點更美觀 */
-            line-height: 2; 
-            color: #2c3e50; /* 深藍灰色墨水感 */
-            white-space: pre-wrap;
-            word-break: break-all;
-            overflow-wrap: break-word;
-            font-weight: 500; /* 稍微加深一點點筆觸 */
-        }
-
-        #out-to { font-family: 'ChenYuluoyan', serif; font-size: 1.4rem; margin-bottom: 10px; font-weight: bold; }
-        #out-from { font-family: 'ChenYuluoyan', serif; text-align: right; font-size: 1.3rem; margin-top: 10px; }
+        #out-to { font-size: 1.4rem; font-weight: bold; margin-bottom: 10px; flex-shrink: 0; }
+        #out-body { flex: 1; font-size: 1.2rem; line-height: 1.8; font-weight: 500; overflow: hidden; }
+        #out-from { text-align: right; font-size: 1.3rem; margin-top: 10px; flex-shrink: 0; }
         
-        button { background: #5a67d8; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        label { font-weight: bold; font-size: 0.9rem; color: #555; }
-        input, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
+        .control-group { margin-bottom: 10px; position: relative; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+        
+        /* 字數計數器樣式 */
+        .word-counter { 
+            position: absolute; right: 0; top: 0; 
+            font-size: 0.75rem; color: #666; 
+        }
+        .over-limit { color: #e53e3e; font-weight: bold; }
+
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { background: #5a67d8; color: white; border: none; padding: 12px; width: 100%; cursor: pointer; border-radius: 5px; font-weight: bold; margin-top: 5px; }
+        .btn-clear { background: #e53e3e; margin-top: 5px; font-size: 0.8rem; padding: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="editor">
-            <h2>給2026年的宵yoruno</h2>
-            <label>收件人</label>
-            <input type="text" id="in-to" placeholder="例：Dear Yoruno">
-            <label>內容</label>
-            <textarea id="in-body" placeholder="在這裡寫下你的內容" style="height:250px; padding: 10px;"></textarea>
-            <label>寄件人署名</label>
-            <input type="text" id="in-from" placeholder="你的名字">
+            <h2>編輯手寫信</h2>
+            
+            <div class="control-group">
+                <label>收件人</label>
+                <input type="text" id="in-to" placeholder="Dear Someone">
+            </div>
+
+            <div class="control-group">
+                <label>內容</label>
+                <textarea id="in-body" maxlength="200" placeholder="限200字以內..." style="height:200px;"></textarea>
+                <div id="counter-box" class="word-counter"><span id="char-count">0</span> / 200</div>
+            </div>
+
+            <div class="control-group">
+                <label>字體大小 (<span id="font-size-val">1.2</span>rem)</label>
+                <input type="range" id="in-size" min="0.8" max="1.8" step="0.1" value="1.2">
+            </div>
+
+            <div class="control-group">
+                <label>寄件人署名</label>
+                <input type="text" id="in-from" placeholder="Yours truly">
+            </div>
+
             <button onclick="saveImage()">儲存圖片下載</button>
-            <p style="font-size: 0.8rem; color: #666;">* 下載後請檢查圖片是否完整</p>
+            <button class="btn-clear" onclick="clearDraft()">清除草稿重寫</button>
+            <p id="status" style="font-size: 0.8rem; color: #666; text-align: center; margin-top: 10px;">載入中...</p>
         </div>
         
         <div id="letter-capture" class="preview-area">
-            <div id="out-to"></div>
-            <div id="out-body" class="letter-content"></div>
-            <div id="out-from"></div>
+            <div id="out-to" class="letter-text"></div>
+            <div id="out-body" class="letter-text"></div>
+            <div id="out-from" class="letter-text"></div>
         </div>
     </div>
 
     <script>
-        // 文字即時同步
-        const mapping = { 'in-to': 'out-to', 'in-body': 'out-body', 'in-from': 'out-from' };
-        Object.keys(mapping).forEach(id => {
+        const ids = ['in-to', 'in-body', 'in-from', 'in-size'];
+        
+        window.onload = () => {
+            ids.forEach(id => {
+                const savedData = localStorage.getItem(id);
+                if (savedData) {
+                    document.getElementById(id).value = savedData;
+                    updatePreview(id, savedData);
+                }
+            });
+            updateCounter(); // 初始化計數器
+            document.fonts.ready.then(() => document.getElementById('status').innerText = "嘿嘿");
+        };
+
+        function updatePreview(id, value) {
+            if (id === 'in-size') {
+                document.getElementById('out-body').style.fontSize = value + 'rem';
+                document.getElementById('font-size-val').innerText = value;
+            } else {
+                const outId = id.replace('in-', 'out-');
+                document.getElementById(outId).innerText = value;
+            }
+        }
+
+        // 字數計數器邏輯
+        function updateCounter() {
+            const content = document.getElementById('in-body').value;
+            const count = content.length;
+            const display = document.getElementById('char-count');
+            display.innerText = count;
+            
+            if (count >= 200) {
+                display.classList.add('over-limit');
+            } else {
+                display.classList.remove('over-limit');
+            }
+        }
+
+        ids.forEach(id => {
             document.getElementById(id).oninput = e => {
-                document.getElementById(mapping[id]).innerText = e.target.value;
+                const val = e.target.value;
+                updatePreview(id, val);
+                localStorage.setItem(id, val);
+                if (id === 'in-body') updateCounter();
             };
         });
 
-        // 字體大小動態調整
-        document.getElementById('in-size').oninput = e => {
-            const val = e.target.value;
-            document.getElementById('out-body').style.fontSize = val + 'rem';
-            document.getElementById('font-size-val').innerText = val;
-        };
-
-        document.fonts.ready.then(() => document.getElementById('status').innerText = "✅ 辰宇落雁體已就緒");
+        function clearDraft() {
+            if (confirm("確定要清除所有內容重寫嗎？")) {
+                ids.forEach(id => {
+                    localStorage.removeItem(id);
+                    document.getElementById(id).value = (id === 'in-size' ? 1.2 : '');
+                    updatePreview(id, (id === 'in-size' ? 1.2 : ''));
+                });
+                updateCounter();
+            }
+        }
 
         async function saveImage() {
             const btn = document.querySelector('button');
@@ -112,15 +155,15 @@
             try {
                 const canvas = await html2canvas(document.getElementById('letter-capture'), { scale: 3, useCORS: true });
                 const link = document.createElement('a');
-                link.download = `Letter.png`;
+                link.download = `Letter_${new Date().getTime()}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 btn.innerText = "儲存圖片下載";
             } catch (err) {
-                btn.innerText = "儲 log 錯誤，請重試";
+                alert("儲存失敗");
+                btn.innerText = "儲存圖片下載";
             }
         }
     </script>
 </body>
 </html>
-
