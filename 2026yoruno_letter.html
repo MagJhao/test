@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>信紙合成器 - 高清下載版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* CSS 略，維持之前的精美排版 */
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 20px; background: #eee; }
+        .editor { width: 300px; padding: 20px; background: #fff; border-radius: 10px; margin-right: 20px; }
+        .preview-area { 
+            width: 450px; height: 636px; background-color: white;
+            background-size: cover; padding: 60px 50px; box-sizing: border-box;
+        }
+        .btn-save { background: #4A90E2; color: white; padding: 10px; width: 100%; cursor: pointer; border: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="editor">
+    <h3>編輯內容</h3>
+    <input type="text" id="input-to" placeholder="收件人">
+    <textarea id="input-body" placeholder="內容..." style="width:100%; height:200px; margin: 10px 0;"></textarea>
+    <input type="text" id="input-from" placeholder="寄件人">
+    
+    <p>解析度：<strong>300 DPI (高清)</strong></p>
+    <button class="btn-save" onclick="downloadLetter()">儲存為圖片</button>
+</div>
+
+<div id="letter-capture" class="preview-area">
+    <div id="font-target" style="font-family: 'Noto Serif TC', serif; height: 100%; display: flex; flex-direction: column;">
+        <div id="view-to" style="font-size: 1.2rem; font-weight: bold;"></div>
+        <div id="view-body" style="flex: 1; font-size: 1.1rem; line-height: 2; white-space: pre-wrap;"></div>
+        <div id="view-from" style="text-align: right; font-size: 1.2rem;"></div>
+    </div>
+</div>
+
+<script>
+    // 隨機背景邏輯
+    const bgImages = ['letter01.jpg', 'letter02.jpg', 'letter03.jpg', 'letter04.jpg']; // 確保這裡檔名對應你的圖
+    const preview = document.getElementById('letter-capture');
+    preview.style.backgroundImage = `url('${bgImages[Math.floor(Math.random() * bgImages.length)]}')`;
+
+    // 文字同步
+    document.getElementById('input-to').oninput = e => document.getElementById('view-to').innerText = e.target.value;
+    document.getElementById('input-body').oninput = e => document.getElementById('view-body').innerText = e.target.value;
+    document.getElementById('input-from').oninput = e => document.getElementById('view-from').innerText = e.target.value;
+
+    // 下載函數
+    async function downloadLetter() {
+        console.log("開始生成圖片...");
+        const target = document.getElementById('letter-capture');
+        
+        try {
+            const canvas = await html2canvas(target, {
+                scale: 2,
+                useCORS: true,
+               allowTaint: true // 允許在污染狀態下繪製，但可能還是無法自動下載
+            });
+
+            // 建立一個新視窗或彈出層顯示圖片
+            const imageData = canvas.toDataURL("image/png");
+        
+           // 彈出提示，讓使用者知道可以右鍵儲存
+           const newWindow = window.open("");
+          newWindow.document.write("<h3>產生的圖片如下，請點擊右鍵「另存圖片」儲存：</h3>");
+          newWindow.document.write(`<img src="${imageData}" style="border:1px solid #ccc; max-width:100%;">`);
+        
+           } catch (error) {
+        console.error("錯誤詳細資訊：", error);
+        alert("受限於瀏覽器安全機制，請嘗試在伺服器環境執行，或使用更換背景功能。");
+       }
+    }
+</script>
+</body>
+</html>
