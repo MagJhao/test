@@ -90,38 +90,34 @@
 
     <script>
         // 文字即時同步
-        document.getElementById('in-to').oninput = e => document.getElementById('out-to').innerText = e.target.value;
-        document.getElementById('in-body').oninput = e => document.getElementById('out-body').innerText = e.target.value;
-        document.getElementById('in-from').oninput = e => document.getElementById('out-from').innerText = e.target.value;
-
-        // 偵測字體加載
-        document.fonts.ready.then(function () {
-            document.getElementById('status').innerText = "✅ 辰宇落雁體已就緒";
+        const mapping = { 'in-to': 'out-to', 'in-body': 'out-body', 'in-from': 'out-from' };
+        Object.keys(mapping).forEach(id => {
+            document.getElementById(id).oninput = e => {
+                document.getElementById(mapping[id]).innerText = e.target.value;
+            };
         });
+
+        // 字體大小動態調整
+        document.getElementById('in-size').oninput = e => {
+            const val = e.target.value;
+            document.getElementById('out-body').style.fontSize = val + 'rem';
+            document.getElementById('font-size-val').innerText = val;
+        };
+
+        document.fonts.ready.then(() => document.getElementById('status').innerText = "✅ 辰宇落雁體已就緒");
 
         async function saveImage() {
             const btn = document.querySelector('button');
-            const status = document.getElementById('status');
-            btn.innerText = "正在合成圖片...";
-            
+            btn.innerText = "合成中...";
             try {
-                const canvas = await html2canvas(document.getElementById('letter-capture'), { 
-                    scale: 3, // 高清畫質
-                    useCORS: true,
-                    logging: false
-                });
-                
+                const canvas = await html2canvas(document.getElementById('letter-capture'), { scale: 3, useCORS: true });
                 const link = document.createElement('a');
-                link.download = `信件_${new Date().getTime()}.png`;
+                link.download = `Letter.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
-                
                 btn.innerText = "儲存圖片下載";
-                status.innerText = "✅ 下載成功！";
             } catch (err) {
-                console.error(err);
-                status.innerText = "❌ 下載失敗，請稍後再試";
-                btn.innerText = "儲存圖片下載";
+                btn.innerText = "儲 log 錯誤，請重試";
             }
         }
     </script>
