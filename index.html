@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>信紙合成器</title>
+    <title>信紙合成器 - 同步修正版</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -13,86 +13,73 @@
         }
 
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f4f4; padding: 20px; }
-        .container { display: flex; gap: 30px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 1000px; }
+        .container { display: flex; gap: 30px; background: white; padding: 30px; border-radius: 12px; max-width: 1000px; }
         .editor { width: 450px; display: flex; flex-direction: column; gap: 15px; }
         
+        /* 預覽區：微調 padding 以應對 Canvas 誤差 */
         .preview-area { 
             width: 450px; height: 636px; 
             background-image: url('letter01.jpg'); 
             background-size: cover; 
-            padding: 85px 52px 60px 52px; 
+            padding: 85px 52px 50px 52px; /* 稍微縮小底部 padding 給文字更多緩衝 */
             box-sizing: border-box;
             display: flex; flex-direction: column;
             position: relative; overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05); /* 讓信紙預覽更有立體感 */
+            background-color: white; /* 避免透明背景導致 SecurityError */
         }
 
         .letter-text {
             font-family: 'ChenYuluoyan', 'Noto Serif TC', serif;
             word-break: break-all; overflow-wrap: break-word;
             white-space: pre-wrap; color: #3A4A5B;
+            /* 關鍵：強制設定字體平滑度，減少截圖落差 */
+            -webkit-font-smoothing: antialiased;
         }
 
         #out-to { font-size: 1.3rem; font-weight: bold; margin-bottom: 8px; flex-shrink: 0; }
         
-        /* 增加正文顯示空間，並微調行高與字級 */
+        /* 核心優化：稍微降低行高並固定高度，防止 Canvas 渲染時推擠文字 */
         #out-body { 
             flex: 1; 
             font-size: 1.1rem; 
-            line-height: 1.7; 
+            line-height: 1.6; /* 從 1.7 縮減到 1.6，抵銷 Canvas 的寬度膨脹 */
             font-weight: 500; 
-            overflow: hidden; 
+            overflow: hidden;
+            max-height: 420px; /* 強制正文區最高高度 */
         }
 
         #out-from { text-align: right; font-size: 1.2rem; margin-top: 5px; flex-shrink: 0; }
         
         .control-group { position: relative; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.85rem; color: #444; }
-        .word-counter { position: absolute; right: 0; top: 0; font-size: 0.7rem; color: #888; }
-        
-        /* 溢出警告樣式 */
-        .warning-text { color: #e53e3e; font-weight: bold; font-size: 0.8rem; display: none; margin-top: 5px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem; color: #444; }
+        .word-counter { position: absolute; right: 0; top: 0; font-size: 0.75rem; color: #888; }
+        .warning-text { color: #e53e3e; font-weight: bold; font-size: 0.85rem; display: none; margin-top: 8px; }
 
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
-        textarea { 
-            width: 100%; 
-            padding: 15px; 
-            border: 1px solid #ccc; 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-size: 1.05rem; 
-            line-height: 1.6;
-            min-height: 350px; /* 預設高度增加到 350px */
-            resize: vertical; /* 允許使用者手動拉高 */
-            background-color: #fafafa;
-        }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        textarea { min-height: 350px; resize: vertical; background-color: #fafafa; }
         
-        button { background: #4a5568; color: white; border: none; padding: 14px; cursor: pointer; border-radius: 6px; font-weight: bold; }
-        .btn-clear { background: #feb2b2; color: #9b2c2c; padding: 8px; font-size: 0.8rem; border: none; border-radius: 6px; cursor: pointer; }
+        button { background: #4a5568; color: white; border: none; padding: 16px; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 1rem; }
+        .btn-clear { background: #feb2b2; color: #9b2c2c; padding: 10px; font-size: 0.85rem; border: none; border-radius: 6px; cursor: pointer; margin-top: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="editor">
             <h2 style="margin-top:0">✍️ 寫封信給 Yoruno</h2>
-            
             <div class="control-group">
                 <label>收件人</label>
                 <input type="text" id="in-to" placeholder="親愛的...">
             </div>
-
             <div class="control-group">
                 <label>信件內容 (不計換行)</label>
                 <textarea id="in-body" placeholder="內容限實質文字 200 字內..."></textarea>
                 <div class="word-counter"><span id="char-count">0</span> / 200</div>
-                <div id="overflow-warn" class="warning-text">⚠️ 內容過長，超出信紙底部囉！</div>
+                <div id="overflow-warn" class="warning-text">⚠️ 內容過長，下載圖可能會被裁切！</div>
             </div>
-
             <div class="control-group">
                 <label>你的署名</label>
                 <input type="text" id="in-from" placeholder="Yours...">
             </div>
-
             <button onclick="saveImage()">💾 儲存高清信件</button>
             <button class="btn-clear" onclick="clearDraft()">🗑️ 清空重寫</button>
         </div>
@@ -123,60 +110,59 @@
             const warn = document.getElementById('overflow-warn');
             const textarea = document.getElementById('in-body');
             
-            // 計算實質字數
             const cleanLength = textarea.value.replace(/\n/g, '').length;
             document.getElementById('char-count').innerText = cleanLength;
             document.getElementById('char-count').style.color = cleanLength > 200 ? '#e53e3e' : '#888';
 
-            // 檢查視覺上的溢出：如果實際內容高度 > 容器可用高度
-            if (outBody.scrollHeight > outBody.clientHeight) {
+            // 預留一點緩衝空間 (clientHeight - 5)
+            if (outBody.scrollHeight > outBody.clientHeight - 5) {
                 warn.style.display = 'block';
-                outBody.style.borderBottom = "2px dashed #e53e3e"; // 預覽區提示
+                outBody.style.backgroundColor = "rgba(229, 62, 62, 0.05)";
             } else {
                 warn.style.display = 'none';
-                outBody.style.borderBottom = "none";
+                outBody.style.backgroundColor = "transparent";
             }
         }
 
         ids.forEach(id => {
             document.getElementById(id).oninput = e => {
-                const val = e.target.value;
-                document.getElementById(id.replace('in-', 'out-')).innerText = val;
-                localStorage.setItem(id, val);
+                document.getElementById(id.replace('in-', 'out-')).innerText = e.target.value;
+                localStorage.setItem(id, e.target.value);
                 if (id === 'in-body') checkOverflow();
             };
         });
 
         function clearDraft() {
-            if (confirm("確定要清除草稿嗎？")) {
-                localStorage.clear();
-                location.reload();
-            }
+            if (confirm("確定要清除草稿嗎？")) { localStorage.clear(); location.reload(); }
         }
 
         async function saveImage() {
-            const outBody = document.getElementById('out-body');
-            const cleanLen = document.getElementById('in-body').value.replace(/\n/g, '').length;
-
-            if (cleanLen > 200) {
-                alert("文字超過 200 字囉！");
-                return;
-            }
-            if (outBody.scrollHeight > outBody.clientHeight) {
-                alert("內容太長超出信紙格線了，請減少換行或縮減內容！");
-                return;
-            }
-
             const btn = document.querySelector('button');
-            btn.innerText = "生成中...";
+            const captureArea = document.getElementById('letter-capture');
+            btn.innerText = "同步渲染中...";
+            
             try {
-                const canvas = await html2canvas(document.getElementById('letter-capture'), { scale: 3, useCORS: true });
+                // 優化渲染參數：加入 logging 和 backgroundColor
+                const canvas = await html2canvas(captureArea, { 
+                    scale: 3, 
+                    useCORS: true,
+                    backgroundColor: "#ffffff",
+                    logging: false,
+                    onclone: (clonedDoc) => {
+                        // 在截圖瞬間微調克隆元素的樣式，確保 100% 同步
+                        const body = clonedDoc.getElementById('out-body');
+                        body.style.lineHeight = "1.6";
+                    }
+                });
+                
                 const link = document.createElement('a');
                 link.download = `Letter_${Date.now()}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 btn.innerText = "💾 儲存高清信件";
             } catch (err) {
+                console.error(err);
+                alert("儲存失敗：可能是圖片權限問題。請確保圖片放在 GitHub 上。");
                 btn.innerText = "💾 儲存高清信件";
             }
         }
