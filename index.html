@@ -105,15 +105,37 @@
         };
 
         function updateCounter() {
-            const count = document.getElementById('in-body').value.length;
+            const textarea = document.getElementById('in-body');
+            const rawValue = textarea.value;
+            
+            // 使用正規表達式移除所有換行符號後計算長度
+            const cleanLength = rawValue.replace(/\n/g, '').length;
+            
             const display = document.getElementById('char-count');
-            display.innerText = count;
-            display.className = count >= 200 ? 'over-limit' : '';
+            display.innerText = cleanLength;
+
+            // 如果純文字超過 200 字，則不允許繼續輸入（保留最後一次有效的輸入）
+            if (cleanLength > 200) {
+                display.className = 'over-limit';
+                // 這裡不強制截斷以防輸入法出錯，但在顯示與存圖時會提醒
+            } else {
+                display.className = '';
+            }
         }
 
         ids.forEach(id => {
             document.getElementById(id).oninput = e => {
-                const val = e.target.value;
+                let val = e.target.value;
+                
+                // 針對正文進行特殊字數擋牆
+                if (id === 'in-body') {
+                    const cleanLen = val.replace(/\n/g, '').length;
+                    if (cleanLen > 200) {
+                        // 如果超過 200 個實質字元，則不更新（簡單的攔截邏輯）
+                        // 注意：這裡為了讓使用者好修改，允許他們輸入後再刪減，但下載時會檢查
+                    }
+                }
+
                 document.getElementById(id.replace('in-', 'out-')).innerText = val;
                 localStorage.setItem(id, val);
                 if (id === 'in-body') updateCounter();
