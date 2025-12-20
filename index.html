@@ -23,10 +23,27 @@
             width: 450px; height: 636px; 
             background-image: url('letter01.jpg'); 
             background-size: cover; 
-            padding: 70px 55px; 
+            padding: 75px 55px; /* 這裡的 Padding 控制了文字的邊界 */
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden; /* 關鍵：強制文字不准跑出信紙範圍 */
+        }
+
+        .letter-text {
+            font-family: 'ChenYuluoyan', 'Noto Serif TC', serif;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            color: #2c3e50;
+        }
+
+        #out-to { 
+            font-size: 1.4rem; 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            flex-shrink: 0; 
         }
 
         /* 信件文字內容樣式 */
