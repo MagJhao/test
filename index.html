@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>信紙合成器</title>
+    <title>信紙合成器 - 同步修正版</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -42,10 +42,9 @@
         #out-body { 
             flex: 1; 
             font-size: 1.1rem; 
-            line-height: 1.6; /* 從 1.7 縮減到 1.6，抵銷 Canvas 的寬度膨脹 */
+            line-height: 1.6; /* 調整行高以符合截圖效果 */
             font-weight: 500; 
             overflow: hidden;
-            max-height: 420px; /* 強制正文區最高高度 */
         }
 
         #out-from { text-align: right; font-size: 1.2rem; margin-top: 5px; flex-shrink: 0; }
@@ -114,14 +113,12 @@
             document.getElementById('char-count').innerText = cleanLength;
             document.getElementById('char-count').style.color = cleanLength > 200 ? '#e53e3e' : '#888';
 
-            // 預留一點緩衝空間 (clientHeight - 5)
-            if (outBody.scrollHeight > outBody.clientHeight - 5) {
+            // 僅顯示警告文字，不改變背景顏色以防紅色區塊產生
+            if (outBody.scrollHeight > outBody.clientHeight) {
                 warn.style.display = 'block';
-                outBody.style.backgroundColor = "rgba(229, 62, 62, 0.05)";
             } else {
                 warn.style.display = 'none';
-                outBody.style.backgroundColor = "transparent";
-            }
+            }ss
         }
 
         ids.forEach(id => {
@@ -169,4 +166,3 @@
     </script>
 </body>
 </html>
-
