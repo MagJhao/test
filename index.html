@@ -12,20 +12,45 @@
         .preview-area { 
             width: 450px; height: 636px; 
             background-image: url('letter01.jpg'); /* 確保檔名一致 */
-            background-size: cover; padding: 60px 50px; box-sizing: border-box;
+            background-size: cover; 
+            padding: 60px 50px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
-        .letter-body { flex: 1; font-family: 'Noto Serif TC', serif; font-size: 1.1rem; line-height: 2; white-space: pre-wrap; }
-        button { background: #5a67d8; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; }
+        .letter-body { 
+            flex: 1; 
+            font-family: 'Noto Serif TC', serif; 
+            font-size: 1.1rem; 
+            line-height: 2; 
+            white-space: pre-wrap; /* 保留換行符號 */
+            
+            /* --- 修正換行問題的關鍵 CSS --- */
+            word-break: break-all;      /* 強制在單字邊界換行，適合中英文混雜 */
+            overflow-wrap: break-word; /* 確保長字也能自動斷行 */
+            /* ---------------------------- */
+            
+            margin-top: 10px;
+        }
+        
+        #out-to { font-weight: bold; font-size: 1.2rem; }
+        #out-from { text-align: right; font-size: 1.2rem; margin-top: 10px; }
+        button { background: #5a67d8; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        button:hover { background: #434190; }button { background: #5a67d8; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="editor">
             <h2>給2026年的宵yoruno</h2>
-            <input type="text" id="in-to" placeholder="給宵的稱呼">
-            <textarea id="in-body" placeholder="想說的內容..." style="height:200px;"></textarea>
-            <input type="text" id="in-from" placeholder="署名">
+            <label>給宵的稱呼</label>
+            <input type="text" id="in-to" placeholder="例：親愛的朋友">
+            <label>想說的內容...</label>
+            <textarea id="in-body" placeholder="在這裡寫下你的內容，現在會自動換行囉！" style="height:250px; padding: 10px;"></textarea>
+            <label>署名</label>
+            <input type="text" id="in-from" placeholder="你的名字">
             <button onclick="saveImage()">儲存圖片下載</button>
+            <p style="font-size: 0.8rem; color: #666;">* 下載後請檢查圖片是否完整</p>
         </div>
         <div id="letter-capture" class="preview-area">
             <div id="out-to" style="font-weight:bold; margin-bottom:10px;"></div>
@@ -35,20 +60,33 @@
     </div>
 
     <script>
+        // 文字同步
         document.getElementById('in-to').oninput = e => document.getElementById('out-to').innerText = e.target.value;
         document.getElementById('in-body').oninput = e => document.getElementById('out-body').innerText = e.target.value;
         document.getElementById('in-from').oninput = e => document.getElementById('out-from').innerText = e.target.value;
 
+        // 下載邏輯
         async function saveImage() {
-            const canvas = await html2canvas(document.getElementById('letter-capture'), { scale: 2, useCORS: true });
+            const btn = document.querySelector('button');
+            btn.innerText = "處理中...";
+            
+            const canvas = await html2canvas(document.getElementById('letter-capture'), { 
+                scale: 2, 
+                useCORS: true,
+                backgroundColor: null 
+            });
+            
             const link = document.createElement('a');
-            link.download = 'letter.png';
-            link.href = canvas.toDataURL();
+            link.download = `信件_${new Date().getTime()}.png`;
+            link.href = canvas.toDataURL("image/png");
             link.click();
+            
+            btn.innerText = "儲存圖片下載";
         }
     </script>
 </body>
 </html>
+
 
 
 
