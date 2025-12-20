@@ -2,92 +2,111 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>線上寫信紙測試器</title>
+    <title>信紙合成器 - 修正換行版</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* 定義辰宇落雁體 */
+        @font-face {
+            font-family: 'ChenYuluoyan';
+            src: url('ChenYuluoyan-2.0-Thin.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap; /* 確保字體加載時能平滑切換 */
+        }
+
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; padding: 20px; }
         .container { display: flex; gap: 20px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .editor { width: 300px; display: flex; flex-direction: column; gap: 10px; }
+        
         .preview-area { 
             width: 450px; height: 636px; 
-            background-image: url('letter01.jpg'); /* 確保檔名一致 */
+            background-image: url('letter01.jpg'); 
             background-size: cover; 
-            padding: 60px 50px; 
+            padding: 70px 55px; 
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
         }
-        .letter-body { 
+
+        /* 信件文字內容樣式 */
+        .letter-content { 
             flex: 1; 
-            font-family: 'Noto Serif TC', serif; 
-            font-size: 1.1rem; 
+            font-family: 'ChenYuluoyan', 'Noto Serif TC', serif; 
+            font-size: 1.3rem; /* 辰宇落雁體通常偏細，調大一點更美觀 */
             line-height: 2; 
-            white-space: pre-wrap; /* 保留換行符號 */
-            
-            /* --- 修正換行問題的關鍵 CSS --- */
-            word-break: break-all;      /* 強制在單字邊界換行，適合中英文混雜 */
-            overflow-wrap: break-word; /* 確保長字也能自動斷行 */
-            /* ---------------------------- */
-            
-            margin-top: 10px;
+            color: #2c3e50; /* 深藍灰色墨水感 */
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            font-weight: 500; /* 稍微加深一點點筆觸 */
         }
+
+        #out-to { font-family: 'ChenYuluoyan', serif; font-size: 1.4rem; margin-bottom: 10px; font-weight: bold; }
+        #out-from { font-family: 'ChenYuluoyan', serif; text-align: right; font-size: 1.3rem; margin-top: 10px; }
         
-        #out-to { font-weight: bold; font-size: 1.2rem; }
-        #out-from { text-align: right; font-size: 1.2rem; margin-top: 10px; }
         button { background: #5a67d8; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        button:hover { background: #434190; }button { background: #5a67d8; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; }
+        label { font-weight: bold; font-size: 0.9rem; color: #555; }
+        input, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="editor">
-            <h2>給2026年的宵yoruno</h2>
-            <label>給宵的稱呼</label>
-            <input type="text" id="in-to" placeholder="例：親愛的朋友">
-            <label>想說的內容...</label>
+            <h2>編輯信件</h2>
+            <label>收件人</label>
+            <input type="text" id="in-to" placeholder="例：Dear Yoruno">
+            <label>內容</label>
             <textarea id="in-body" placeholder="在這裡寫下你的內容，現在會自動換行囉！" style="height:250px; padding: 10px;"></textarea>
-            <label>署名</label>
+            <label>寄件人署名</label>
             <input type="text" id="in-from" placeholder="你的名字">
             <button onclick="saveImage()">儲存圖片下載</button>
             <p style="font-size: 0.8rem; color: #666;">* 下載後請檢查圖片是否完整</p>
         </div>
+        
         <div id="letter-capture" class="preview-area">
-            <div id="out-to" style="font-weight:bold; margin-bottom:10px;"></div>
-            <div id="out-body" class="letter-body"></div>
-            <div id="out-from" style="text-align:right;"></div>
+            <div id="out-to"></div>
+            <div id="out-body" class="letter-content"></div>
+            <div id="out-from"></div>
         </div>
     </div>
 
     <script>
-        // 文字同步
+        // 文字即時同步
         document.getElementById('in-to').oninput = e => document.getElementById('out-to').innerText = e.target.value;
         document.getElementById('in-body').oninput = e => document.getElementById('out-body').innerText = e.target.value;
         document.getElementById('in-from').oninput = e => document.getElementById('out-from').innerText = e.target.value;
 
-        // 下載邏輯
+        // 偵測字體加載
+        document.fonts.ready.then(function () {
+            document.getElementById('status').innerText = "✅ 辰宇落雁體已就緒";
+        });
+
         async function saveImage() {
             const btn = document.querySelector('button');
-            btn.innerText = "處理中...";
+            const status = document.getElementById('status');
+            btn.innerText = "正在合成圖片...";
             
-            const canvas = await html2canvas(document.getElementById('letter-capture'), { 
-                scale: 2, 
-                useCORS: true,
-                backgroundColor: null 
-            });
-            
-            const link = document.createElement('a');
-            link.download = `信件_${new Date().getTime()}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            
-            btn.innerText = "儲存圖片下載";
+            try {
+                const canvas = await html2canvas(document.getElementById('letter-capture'), { 
+                    scale: 3, // 高清畫質
+                    useCORS: true,
+                    logging: false
+                });
+                
+                const link = document.createElement('a');
+                link.download = `信件_${new Date().getTime()}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                
+                btn.innerText = "儲存圖片下載";
+                status.innerText = "✅ 下載成功！";
+            } catch (err) {
+                console.error(err);
+                status.innerText = "❌ 下載失敗，請稍後再試";
+                btn.innerText = "儲存圖片下載";
+            }
         }
     </script>
 </body>
 </html>
-
-
-
-
-
